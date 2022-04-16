@@ -23,8 +23,8 @@ function shuffle(array: any[]) {
 slackEvents.on("app_mention", async (event) => {
   let text = event.text;
   console.log(text);
-  if(text.startsWith("Reminder")) {
-    text = text.replace("Reminder", "").trim();
+  if(text.startsWith("Reminder:")) {
+    text = text.replace("Reminder:", "").trim();
   }
   console.log(text);
   const botId: string = text.split(" ")[0];

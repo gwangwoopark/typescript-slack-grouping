@@ -23,26 +23,29 @@ function shuffle(array: any[]) {
 slackEvents.on("app_mention", async (event) => {
   let text = event.text;
   console.log(text);
-  if(text.startsWith("Reminder:")) {
+  if (text.startsWith("Reminder:")) {
     text = text.replace("Reminder:", "").trim();
   }
   console.log(text);
   const botId: string = text.split(" ")[0];
   console.log("id: " + botId);
-  const message: string = text.replace(botId, "").trim();
-  console.log("message: " + message);
+  const strJson: string = text.replace(botId, "").trim();
+  console.log("json string: " + strJson);
   try {
-    const query: any = JSON.parse(message);
+    const query: any = JSON.parse(strJson);
 
     if (query.names === undefined) {
       throw 'The parameter "names" is not defined';
     }
     const strNames = query.names as string;
 
-    if (query.size === undefined) {
-      throw 'The parameter "size" is not defined';
-    }
-    const teamSize: number = query.size as number;
+    const teamSize: number = query.size
+      ? (query.size as string)
+        ? parseInt(query.size)
+        : query.size
+      : 4;
+
+    const message: string = query.message as string | "Random Team Generator: ";
 
     const arrNames: string[] = strNames.replace(/\s/g, "").split(",");
     shuffle(arrNames);
@@ -56,7 +59,7 @@ slackEvents.on("app_mention", async (event) => {
       }
     }
 
-    let strTeamBuilding: string = "";
+    let strTeamBuilding: string = "" + message + `\n`;
     const baseTeam: number = "A".charCodeAt(0);
     teams.forEach((team: string[], index: number) => {
       strTeamBuilding += String.fromCharCode(baseTeam + index) + " 팀 - ";
@@ -75,7 +78,9 @@ slackEvents.on("app_mention", async (event) => {
   } catch (err) {
     console.log(err);
     webClient.chat.postMessage({
-      text: String('Usage: {"names": "park, choi, kim, lee", "size":2}'),
+      text: String(
+        'Usage: {"names": "park, choi, kim, lee", "size":2 <optional, default: 4>, "message": "Lunch Teams" <optional>}'
+      ),
       channel: event.channel,
     });
   }
